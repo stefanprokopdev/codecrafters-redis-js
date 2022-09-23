@@ -1,4 +1,4 @@
-const AVAILABLE_COMMANDS = ['ECHO', 'PING'];
+const AVAILABLE_COMMANDS = ['ECHO', 'PING', 'SET', 'GET'];
 
 /**
  * @param {string} data
@@ -8,15 +8,14 @@ const decodeResp = (data) => {
         throw new Error('Command is too short!');
     }
     const command = data[0];
+    const args = data.split('\r\n');
     switch (command) {
         case '*':
-            const args = data.split('\r\n');
-            return decode(args.slice(1, args.length));
+            return decode(args.slice(1));
         case '+':
-            const params = data.slice(1, data.length).split('\r\n');
-            return decode(params);
+            return decode(args.slice(1));
         default:
-            return decode(data.split('\r\n'));
+            return decode(args);
     }
 };
 
@@ -28,15 +27,37 @@ const decode = (args) => {
     for (const element of args) {
         if (isCommand(element)) {
             return {
-                args,
                 command: element.toUpperCase(),
-                commandIndex: index,
+                args: args.slice(index + 1),
             };
         }
         index++;
     }
-    throw new Error('Unknown command!');
+    const result = decodeCommand(args);
+    if (!result) {
+        throw new Error('Unknown command!');
+    }
+    return result;
 }
+
+/**
+ * @param {string[]} params
+ * @returns {{args: (*|string)[], command: string}}
+ */
+const decodeCommand = (params) => {
+    console.log(params)
+    if (params.length !== 1) {
+        throw new Error('Invalid parameters length!');
+    }
+    const [command, ...values] = params[0].split(' ');
+    if (!isCommand(command)) {
+        throw new Error('Unsupported command!');
+    }
+    return {
+        command: command.toUpperCase(),
+        args: values,
+    };
+};
 
 /**
  * @param {string} command

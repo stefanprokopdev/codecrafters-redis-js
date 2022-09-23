@@ -1,37 +1,55 @@
-const { decode } = require('./resp');
+const { decode, encode } = require('./resp');
+const { cleanArgs } = require('./utils');
+const storage = require('./storage')();
 
 /**
  * @param {string} data
  */
 const resolveCommand = (data) => {
+    console.log({ data });
     try {
-        const { command, args, commandIndex } = decode(data);
-        console.log({ command, args, commandIndex });
+        const { command, args } = decode(data);
+        console.log({ command, args });
         switch (command) {
             case 'PING':
-                return ping();
+                return encode.pong();
             case 'ECHO':
-                return echo(args.slice(commandIndex + 1, args.length));
+                return encode.echo(args);
+            case 'SET':
+                return set(cleanArgs(args));
+            case 'GET':
+                return get(cleanArgs(args));
             default:
-                return unknownCommand(command);
+                return encode.unknownCommandError(command);
         }
     } catch (error) {
         const errorMessage = `An error occurred: ${error.message}`;
         console.log(errorMessage);
-        return `-ERROR ${errorMessage}`;
+        return encode.error(errorMessage);
     }
 };
-
-const ping = () => '+PONG\r\n';
 
 /**
  * @param {string[]} params
  */
-const echo = (params) => params.join('\r\n');
+const set = (params) => {
+    if (params.length < 2) {
+        throw new Error('Invalid parameters length!');
+    }
+    const [key, ...value] = params;
+    storage.set(key, value.join(' '));
+    return encode.ok();
+};
 
 /**
- * @param {String} command
+ * @param {string[]} params
  */
-const unknownCommand = (command) => `-ERROR unknown command: '${command}'\r\n`
+const get = (params) => {
+    if (params.length !== 1) {
+        throw new Error('Invalid parameters length!');
+    }
+    const result = storage.get(params[0]) || '';
+    return encode.simpleResponse(result);
+};
 
 module.exports = resolveCommand;

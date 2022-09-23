@@ -1,6 +1,4 @@
 const decodeResp = require('./decoder');
+const encode = require('./encoder');
 
-module.exports = {
-    encode: null,
-    decode: decodeResp,
-};
+module.exports = { encode, decode: decodeResp };
