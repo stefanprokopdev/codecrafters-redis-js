@@ -1,6 +1,8 @@
 const { decode, encode } = require('./resp');
 const { cleanArgs } = require('./utils');
-const storage = require('./storage')();
+const { initializeStorage, STORAGE_OPTIONS } = require('./storage');
+
+const storage = initializeStorage();
 
 /**
  * @param {string} data
@@ -36,9 +38,26 @@ const set = (params) => {
     if (params.length < 2) {
         throw new Error('Invalid parameters length!');
     }
-    const [key, ...value] = params;
-    storage.set(key, value.join(' '));
+    const [key, value, ...args] = params;
+    storage.set(key, value, getSetArguments(args));
     return encode.ok();
+};
+
+/**
+ * @param {string[]} params
+ */
+const getSetArguments = (params) => {
+    let index = 0;
+    if (arguments.length <= 0) {
+        return;
+    }
+    for (const argument of params) {
+        const key = argument.toUpperCase();
+        if (STORAGE_OPTIONS.includes(key)) {
+            return { [key]: params.slice(index + 1) };
+        }
+        index++;
+    }
 };
 
 /**
@@ -48,7 +67,10 @@ const get = (params) => {
     if (params.length !== 1) {
         throw new Error('Invalid parameters length!');
     }
-    const result = storage.get(params[0]) || '';
+    const result = storage.get(params[0]);
+    if (!result) {
+        return encode.nullReply();
+    }
     return encode.simpleResponse(result);
 };
 

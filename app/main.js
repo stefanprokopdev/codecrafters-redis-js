@@ -8,8 +8,8 @@ const server = net.createServer((connection) => {
 })
     .on('connection', (connection) => {
         console.log(`Connection created on port ${connection.localPort}`)
-        // connection.emit('data', '*3\r\n$3\r\nset\r\n$4\r\nheya\r\n$4\r\nheya\r\n')
-        // connection.emit('data', '*1\r\n$4\r\nping\r\n')
+        // connection.emit('data', '*5\r\n$3\r\nset\r\n$4\r\ndefg\r\n$4\r\nheya\r\n$2\r\npx\r\n$3\r\n100\r\n')
+        // connection.emit('data', '*2\r\n$3\r\nget\r\n$4\r\ndefg\r\n')
     })
     .on('listening', () => {
         console.log(`Server is listening ...`);

@@ -19,4 +19,6 @@ const echo = (params) => params.join('\r\n');
 
 const error = (message) => `-ERROR ${message}\r\n`;
 
-module.exports = { pong, ok, simpleResponse, echo, error, unknownCommandError };
+const nullReply = () => '$-1\r\n';
+
+module.exports = { pong, ok, simpleResponse, echo, error, unknownCommandError, nullReply };
