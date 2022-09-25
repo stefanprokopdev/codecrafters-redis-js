@@ -1,20 +1,17 @@
 const net = require('net');
-const resolveCommand = require('./command');
+const resolveCommand = require('./parser/command');
+const clean = require('./redis/garbageCollector');
 
 const server = net.createServer((connection) => {
+    clean();
     connection.on('data', (data) => {
-        connection.write(resolveCommand(data.toString('utf8')));
+        const text = data.toString('utf8');
+        console.log({ command: text });
+        connection.write(resolveCommand(text));
     });
 })
-    .on('connection', (connection) => {
-        console.log(`Connection created on port ${connection.localPort}`)
-        // connection.emit('data', '*5\r\n$3\r\nset\r\n$4\r\ndefg\r\n$4\r\nheya\r\n$2\r\npx\r\n$3\r\n100\r\n')
-        // connection.emit('data', '*2\r\n$3\r\nget\r\n$4\r\ndefg\r\n')
-    })
-    .on('listening', () => {
-        console.log(`Server is listening ...`);
-        // net.connect({ port: 6379, host: '0.0.0.0' });
-    })
+    .on('connection', (connection) => console.log(`Connection created on port ${connection.localPort}`))
+    .on('listening', () => console.log('Server is listening ...'))
     .on('close', () => console.log('Closing the connection ...'))
     .on('error', (error) => {
         console.log(`An error occurred: ${error.message}`);

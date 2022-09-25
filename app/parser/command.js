@@ -1,17 +1,14 @@
-const { decode, encode } = require('./resp');
+const { decode, encode } = require('../resp');
 const { cleanArgs } = require('./utils');
-const { initializeStorage, STORAGE_OPTIONS } = require('./storage');
-
-const storage = initializeStorage();
+const storage = require('../redis/storage');
 
 /**
  * @param {string} data
+ * @returns {string}
  */
 const resolveCommand = (data) => {
-    console.log({ data });
     try {
         const { command, args } = decode(data);
-        console.log({ command, args });
         switch (command) {
             case 'PING':
                 return encode.pong();
@@ -25,14 +22,13 @@ const resolveCommand = (data) => {
                 return encode.unknownCommandError(command);
         }
     } catch (error) {
-        const errorMessage = `An error occurred: ${error.message}`;
-        console.log(errorMessage);
-        return encode.error(errorMessage);
+        return encode.error(`An error occurred: ${error.message}`);
     }
 };
 
 /**
  * @param {string[]} params
+ * @returns {string}
  */
 const set = (params) => {
     if (params.length < 2) {
@@ -45,6 +41,7 @@ const set = (params) => {
 
 /**
  * @param {string[]} params
+ * @returns {{[p: string]: *} | undefined}
  */
 const getSetArguments = (params) => {
     let index = 0;
@@ -53,7 +50,7 @@ const getSetArguments = (params) => {
     }
     for (const argument of params) {
         const key = argument.toUpperCase();
-        if (STORAGE_OPTIONS.includes(key)) {
+        if (storage.getAvailableSetOptions().includes(key)) {
             return { [key]: params.slice(index + 1) };
         }
         index++;
@@ -62,6 +59,7 @@ const getSetArguments = (params) => {
 
 /**
  * @param {string[]} params
+ * @returns {string}
  */
 const get = (params) => {
     if (params.length !== 1) {

@@ -2,6 +2,7 @@ const AVAILABLE_COMMANDS = ['ECHO', 'PING', 'SET', 'GET'];
 
 /**
  * @param {string} data
+ * @returns {{args: string[], command: *}|{args: (*|string)[], command: string}}
  */
 const decodeResp = (data) => {
     if (data.length <= 0) {
@@ -21,6 +22,7 @@ const decodeResp = (data) => {
 
 /**
  * @param {string[]} args
+ * @returns {{args: *, command: string}|{args: (*|string)[], command: string}}
  */
 const decode = (args) => {
     let index = 0;
@@ -45,7 +47,6 @@ const decode = (args) => {
  * @returns {{args: (*|string)[], command: string}}
  */
 const decodeCommand = (params) => {
-    console.log(params)
     if (params.length !== 1) {
         throw new Error('Invalid parameters length!');
     }
